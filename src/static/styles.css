@@ -78,8 +78,8 @@ section h3 {
   color: #1a237e;
 }
 .participant-list {
-  list-style: disc;
-  margin: 6px 0 0 18px;
+  list-style: none; /* hide bullets */
+  margin: 6px 0 0 0;
   padding: 0;
 }
 .participant-item {
@@ -89,6 +89,24 @@ section h3 {
   margin: 6px 0;
   font-size: 0.95rem;
   color: #333;
+}
+
+/* Delete / remove button shown for each participant */
+.participant-delete {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: #c62828;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: background-color 0.12s, color 0.12s;
+  font-size: 0.9rem;
+}
+.participant-delete:hover {
+  background-color: rgba(198, 40, 40, 0.08);
+  color: #9a1212;
 }
 .participant-avatar {
   width: 28px;

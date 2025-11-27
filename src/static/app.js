@@ -50,7 +50,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 .slice(0, 2)
                 .join("")
                 .toUpperCase();
-              return `<li class="participant-item"><span class="participant-avatar">${escapeHtml(initials)}</span><span>${escapeHtml(label)}</span></li>`;
+              // Add a delete button for each participant. Use data attributes for activity and email.
+              return `<li class="participant-item" data-email="${escapeHtml(label)}"><span class="participant-avatar">${escapeHtml(initials)}</span><span class="participant-label">${escapeHtml(label)}</span><button class="participant-delete" aria-label="Unregister ${escapeHtml(label)}" data-email="${escapeHtml(label)}">✖</button></li>`;
             })
             .join("");
           participantsHTML = `<div class="participants"><h5>Participants (${participants.length})</h5><ul class="participant-list">${items}</ul></div>`;
@@ -63,6 +64,40 @@ document.addEventListener("DOMContentLoaded", () => {
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
           ${participantsHTML}
         `;
+
+        // Attach event listeners to the delete buttons we just injected
+        activityCard.querySelectorAll(".participant-delete").forEach((btn) => {
+          btn.addEventListener("click", async (e) => {
+            const email = btn.getAttribute("data-email");
+            // Confirm before unregistering
+            const confirmed = window.confirm(`Remove ${email} from ${name}?`);
+            if (!confirmed) return;
+
+            try {
+              const resp = await fetch(`/activities/${encodeURIComponent(name)}/unregister?email=${encodeURIComponent(email)}`, { method: "DELETE" });
+              const json = await resp.json();
+
+              if (resp.ok) {
+                messageDiv.textContent = json.message || "Unregistered successfully";
+                messageDiv.className = "success";
+                messageDiv.classList.remove("hidden");
+                // Refresh activities so UI reflects removal
+                fetchActivities();
+              } else {
+                messageDiv.textContent = json.detail || "Failed to unregister";
+                messageDiv.className = "error";
+                messageDiv.classList.remove("hidden");
+              }
+
+              setTimeout(() => messageDiv.classList.add("hidden"), 4000);
+            } catch (err) {
+              messageDiv.textContent = "Failed to unregister. Please try again.";
+              messageDiv.className = "error";
+              messageDiv.classList.remove("hidden");
+              console.error("Unregister error:", err);
+            }
+          });
+        });
 
         activitiesList.appendChild(activityCard);
 
@@ -99,6 +134,8 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+        // Refresh activities so the newly-registered participant appears immediately
+        fetchActivities();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
